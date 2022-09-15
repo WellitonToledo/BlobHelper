@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   #push:
   #  branches:
-  #    main
+  #    master
 
 jobs:
   build-and-deploy:
@@ -22,9 +22,6 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
         
-    #- name: Add nuget.org as nuget package source
-    #  run: dotnet nuget add source https://actuar.pkgs.visualstudio.com/_packaging/SDK/nuget/v3/index.json --name actuar-azure2 --username pablo@actuar.group --password asdfasdfasdf
-        
     - name: Set version number environment variable
       env:
         github_ref: ${{ github.ref }}
@@ -33,10 +30,6 @@ jobs:
          echo version=$version
          echo "version=$version" >> $GITHUB_ENV
  
-    #
-    # Este exemplo builda indiviudalmente os projetos ao invés da solução inteira,
-    # porque esses projetos sao dotnet5 e o restante da solução é dotnet6
-    #
     - name: Build with dotnet
       run: |
         dotnet build "src/BlobHelper.csproj" --configuration Release -p:Version=${{ env.version }}
