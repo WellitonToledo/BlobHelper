@@ -920,6 +920,7 @@ namespace BlobHelper
             if (stream == null || contentLength < 1)
             {
                 request.BucketName = _AwsSettings.Bucket;
+                request.CannedACL = _AwsSettings.CannedAcl;
                 request.Key = key;
                 request.ContentType = contentType;
                 request.UseChunkEncoding = false;
@@ -928,6 +929,7 @@ namespace BlobHelper
             else
             {
                 request.BucketName = _AwsSettings.Bucket;
+                request.CannedACL = _AwsSettings.CannedAcl;
                 request.Key = key;
                 request.ContentType = contentType;
                 request.UseChunkEncoding = false;

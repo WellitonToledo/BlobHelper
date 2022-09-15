@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Amazon.S3;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
- 
+
 namespace BlobHelper
 {
     /// <summary>
@@ -50,6 +51,11 @@ namespace BlobHelper
         /// </summary>
         public string BaseUrl { get; set; } = null;
 
+        /// <summary>
+        /// AWS CannedACL sets the canned access control list (ACL) for the uploaded object
+        /// </summary>
+        public S3CannedACL CannedAcl { get; set; } = null;
+
         #endregion
 
         #region Private-Members
@@ -73,18 +79,19 @@ namespace BlobHelper
         /// <param name="secretKey">Secret key with which to access AWS S3.</param>
         /// <param name="region">AWS region.</param>
         /// <param name="bucket">Bucket in which to store BLOBs.</param>
-        public AwsSettings(string accessKey, string secretKey, AwsRegion region, string bucket)
+        public AwsSettings(string accessKey, string secretKey, AwsRegion region, string bucket, S3CannedACL cannedAcl = null)
         {
             if (String.IsNullOrEmpty(accessKey)) throw new ArgumentNullException(nameof(accessKey));
             if (String.IsNullOrEmpty(secretKey)) throw new ArgumentNullException(nameof(secretKey));
-            if (String.IsNullOrEmpty(bucket)) throw new ArgumentNullException(nameof(bucket)); 
+            if (String.IsNullOrEmpty(bucket)) throw new ArgumentNullException(nameof(bucket));
 
             Endpoint = null;
             Ssl = true;
             AccessKey = accessKey;
             SecretKey = secretKey;
             Region = region;
-            Bucket = bucket; 
+            Bucket = bucket;
+            CannedAcl = cannedAcl;
         }
 
         /// <summary>
@@ -94,7 +101,7 @@ namespace BlobHelper
         /// <param name="secretKey">Secret key with which to access AWS S3.</param>
         /// <param name="region">AWS region.</param>
         /// <param name="bucket">Bucket in which to store BLOBs.</param>
-        public AwsSettings(string accessKey, string secretKey, string region, string bucket)
+        public AwsSettings(string accessKey, string secretKey, string region, string bucket, S3CannedACL cannedAcl = null)
         {
             if (String.IsNullOrEmpty(accessKey)) throw new ArgumentNullException(nameof(accessKey));
             if (String.IsNullOrEmpty(secretKey)) throw new ArgumentNullException(nameof(secretKey));
@@ -104,6 +111,7 @@ namespace BlobHelper
             AccessKey = accessKey;
             SecretKey = secretKey;
             Bucket = bucket;
+            CannedAcl = cannedAcl;
 
             if (!ValidateRegion(region)) throw new ArgumentException("Unable to validate region: " + region);
             Region = GetRegionFromString(region);
@@ -117,11 +125,11 @@ namespace BlobHelper
         /// <param name="region">AWS region.</param>
         /// <param name="bucket">Bucket in which to store BLOBs.</param>
         /// <param name="ssl">Enable or disable SSL.</param>
-        public AwsSettings(string accessKey, string secretKey, AwsRegion region, string bucket, bool ssl)
+        public AwsSettings(string accessKey, string secretKey, AwsRegion region, string bucket, bool ssl, S3CannedACL cannedAcl = null)
         {
             if (String.IsNullOrEmpty(accessKey)) throw new ArgumentNullException(nameof(accessKey));
             if (String.IsNullOrEmpty(secretKey)) throw new ArgumentNullException(nameof(secretKey));
-            if (String.IsNullOrEmpty(bucket)) throw new ArgumentNullException(nameof(bucket)); 
+            if (String.IsNullOrEmpty(bucket)) throw new ArgumentNullException(nameof(bucket));
 
             Endpoint = null;
             Ssl = true;
@@ -129,7 +137,8 @@ namespace BlobHelper
             SecretKey = secretKey;
             Region = region;
             Bucket = bucket;
-            Ssl = ssl; 
+            Ssl = ssl;
+            CannedAcl = cannedAcl;
         }
 
         /// <summary>
@@ -140,17 +149,18 @@ namespace BlobHelper
         /// <param name="region">AWS region.</param>
         /// <param name="bucket">Bucket in which to store BLOBs.</param>
         /// <param name="ssl">Enable or disable SSL.</param> 
-        public AwsSettings(string accessKey, string secretKey, string region, string bucket, bool ssl)
+        public AwsSettings(string accessKey, string secretKey, string region, string bucket, bool ssl, S3CannedACL cannedAcl = null)
         {
             if (String.IsNullOrEmpty(accessKey)) throw new ArgumentNullException(nameof(accessKey));
             if (String.IsNullOrEmpty(secretKey)) throw new ArgumentNullException(nameof(secretKey));
             if (String.IsNullOrEmpty(region)) throw new ArgumentNullException(nameof(region));
-            if (String.IsNullOrEmpty(bucket)) throw new ArgumentNullException(nameof(bucket)); 
-            
+            if (String.IsNullOrEmpty(bucket)) throw new ArgumentNullException(nameof(bucket));
+
             AccessKey = accessKey;
             SecretKey = secretKey;
             Bucket = bucket;
             Ssl = ssl;
+            CannedAcl = cannedAcl;
 
             if (!ValidateRegion(region)) throw new ArgumentException("Unable to validate region: " + region);
             Region = GetRegionFromString(region);
@@ -166,14 +176,14 @@ namespace BlobHelper
         /// <param name="region">AWS region.</param>
         /// <param name="bucket">Bucket in which to store BLOBs.</param>
         /// <param name="baseUrl">Base URL to use for objects, i.e. https://[bucketname].s3.[regionname].amazonaws.com/.  For non-S3 endpoints, use {bucket} and {key} to indicate where these values should be inserted, i.e. http://{bucket}.[hostname]:[port]/{key} or https://[hostname]:[port]/{bucket}/key.</param>
-        public AwsSettings(string endpoint, bool ssl, string accessKey, string secretKey, AwsRegion region, string bucket, string baseUrl)
+        public AwsSettings(string endpoint, bool ssl, string accessKey, string secretKey, AwsRegion region, string bucket, string baseUrl, S3CannedACL cannedAcl = null)
         {
             if (String.IsNullOrEmpty(endpoint)) throw new ArgumentNullException(nameof(endpoint));
             if (String.IsNullOrEmpty(accessKey)) throw new ArgumentNullException(nameof(accessKey));
             if (String.IsNullOrEmpty(secretKey)) throw new ArgumentNullException(nameof(secretKey));
             if (String.IsNullOrEmpty(bucket)) throw new ArgumentNullException(nameof(bucket));
             if (String.IsNullOrEmpty(baseUrl)) throw new ArgumentNullException(nameof(baseUrl));
-            
+
             Endpoint = endpoint;
             Ssl = ssl;
             AccessKey = accessKey;
@@ -181,8 +191,9 @@ namespace BlobHelper
             Region = region;
             Bucket = bucket;
             BaseUrl = baseUrl;
+            CannedAcl = cannedAcl;
 
-            if (!BaseUrl.EndsWith("/")) BaseUrl += "/"; 
+            if (!BaseUrl.EndsWith("/")) BaseUrl += "/";
         }
 
         /// <summary>
@@ -195,7 +206,7 @@ namespace BlobHelper
         /// <param name="region">AWS region.</param>
         /// <param name="bucket">Bucket in which to store BLOBs.</param>
         /// <param name="baseUrl">Base URL to use for objects, i.e. https://[bucketname].s3.[regionname].amazonaws.com/.  For non-S3 endpoints, use {bucket} and {key} to indicate where these values should be inserted, i.e. http://{bucket}.[hostname]:[port]/{key} or https://[hostname]:[port]/{bucket}/key.</param>
-        public AwsSettings(string endpoint, bool ssl, string accessKey, string secretKey, string region, string bucket, string baseUrl)
+        public AwsSettings(string endpoint, bool ssl, string accessKey, string secretKey, string region, string bucket, string baseUrl, S3CannedACL cannedAcl = null)
         {
             if (String.IsNullOrEmpty(endpoint)) throw new ArgumentNullException(nameof(endpoint));
             if (String.IsNullOrEmpty(accessKey)) throw new ArgumentNullException(nameof(accessKey));
@@ -209,6 +220,7 @@ namespace BlobHelper
             SecretKey = secretKey;
             Bucket = bucket;
             BaseUrl = baseUrl;
+            CannedAcl = cannedAcl;
 
             if (!BaseUrl.EndsWith("/")) BaseUrl += "/";
 
@@ -225,7 +237,7 @@ namespace BlobHelper
         /// </summary>
         /// <returns>AWS region endpoint.</returns>
         public Amazon.RegionEndpoint GetAwsRegionEndpoint()
-        { 
+        {
             switch (Region)
             {
                 case AwsRegion.APNortheast1:
