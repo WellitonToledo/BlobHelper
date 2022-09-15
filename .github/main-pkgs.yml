@@ -1,0 +1,50 @@
+# https://balta.io/blog/github-packages-github-actions-distribuindo-contextos-delimitados
+name: Main pkgs build and deploy
+
+on:
+  workflow_dispatch:
+  #push:
+  #  branches:
+  #    main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Set up .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
+        source-url: https://nuget.pkg.github.com/actuar/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        
+    #- name: Add nuget.org as nuget package source
+    #  run: dotnet nuget add source https://actuar.pkgs.visualstudio.com/_packaging/SDK/nuget/v3/index.json --name actuar-azure2 --username pablo@actuar.group --password asdfasdfasdf
+        
+    - name: Set version number environment variable
+      env:
+        github_ref: ${{ github.ref }}
+      run: |
+        version='1.${{ github.run_number }}.${{ github.run_attempt }}'
+         echo version=$version
+         echo "version=$version" >> $GITHUB_ENV
+ 
+    #
+    # Este exemplo builda indiviudalmente os projetos ao invés da solução inteira,
+    # porque esses projetos sao dotnet5 e o restante da solução é dotnet6
+    #
+    - name: Build with dotnet
+      run: |
+        dotnet build "src/BlobHelper.csproj" --configuration Release -p:Version=${{ env.version }}
+
+    - name: Create the Package
+      run: |
+        dotnet pack "src/BlobHelper.csproj" --configuration Release /p:PackageVersion=5.${{ env.version }} #-beta
+
+    - name: Publish Actuar.Storage.Shared
+      run: dotnet nuget push "src/BlobHelper/bin/Release/*.nupkg" -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/actuar/index.json --skip-duplicate
+       
