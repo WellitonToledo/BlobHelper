@@ -38,6 +38,6 @@ jobs:
       run: |
         dotnet pack "src/BlobHelper/BlobHelper.csproj" --configuration Release /p:PackageVersion=5.${{ env.version }} #-beta
 
-    - name: Publish Actuar.Storage.Shared
+    - name: Publish the Package
       run: dotnet nuget push "src/BlobHelper/bin/Release/*.nupkg" -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/wellitontoledo/index.json --skip-duplicate
        
