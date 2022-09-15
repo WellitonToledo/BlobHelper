@@ -1,5 +1,5 @@
 # https://balta.io/blog/github-packages-github-actions-distribuindo-contextos-delimitados
-name: Main pkgs build and deploy
+name: Build and deploy package
 
 on:
   workflow_dispatch:
@@ -32,11 +32,11 @@ jobs:
  
     - name: Build with dotnet
       run: |
-        dotnet build "src/BlobHelper.csproj" --configuration Release -p:Version=${{ env.version }}
+        dotnet build "src/BlobHelper/BlobHelper.csproj" --configuration Release -p:Version=${{ env.version }}
 
     - name: Create the Package
       run: |
-        dotnet pack "src/BlobHelper.csproj" --configuration Release /p:PackageVersion=5.${{ env.version }} #-beta
+        dotnet pack "src/BlobHelper/BlobHelper.csproj" --configuration Release /p:PackageVersion=5.${{ env.version }} #-beta
 
     - name: Publish Actuar.Storage.Shared
       run: dotnet nuget push "src/BlobHelper/bin/Release/*.nupkg" -k ${{ secrets.GITHUB_TOKEN }} -s https://nuget.pkg.github.com/actuar/index.json --skip-duplicate
